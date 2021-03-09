@@ -134,6 +134,7 @@ class EnvironmentBase(object):
             ## temporarly padd for the required view
             observation = np.pad(observation, 2, self.pad_with, padder=0)
             player.observation = observation
+            player.observable_view = (x_min, x_max, y_min, y_max)
     def pad_with(self, vector, pad_width, iaxis, kwargs):
         pad_value = kwargs.get('padder', 10)
         vector[:pad_width[0]] = pad_value

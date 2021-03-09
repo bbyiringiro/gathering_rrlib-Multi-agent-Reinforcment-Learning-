@@ -41,7 +41,10 @@ class GatherMultEnv(MultiAgentEnv):
         self.num_agents = len(self.agents)
         self.fig, self.ax = plt.subplots()
         plt.ion()
-        plt.show(block=False)
+
+        self.full_observable = True
+
+
 
 
     def set_up(self):
@@ -96,24 +99,43 @@ class GatherMultEnv(MultiAgentEnv):
         dones = {}
         info = {}
         for agent_id, agent in self.agents.items():
-            obs, reward, done = self.move(agent,actions[agent_id])
+            obs, reward, done= self.move(agent,actions[agent_id])
             observations[agent_id] = obs
             rewards[agent_id] = reward
+            in_reward = agent.update(actions[agent_id],\
+                reward,\
+                self.get_neigbors(agent_id, self.env.player_list[agent.player_idx].observable_view),\
+                self.iteration)
+            print(f' InR: {in_reward}')
+            print(f'elibility trace {agent_id} {agent.eligibility_trace}')
+            print(f'defections n{agent_id} {agent.defection_n}')
             dones[agent_id] = done
         dones["__all__"] = np.any(list(dones.values()))
 
 
-        
-        self.show(observations['agent-0'])
+        # self.agent_pos(
+        # self.show(observations['agent-0'])
+        if in_reward < 0:
+            import sys
+            sys.exit()
         return observations, rewards, dones, info
+    
+    def get_neigbors(self, agent_id, agent_view):
+        if self.full_observable:
+            return [neigbor for id, neigbor in self.agents.items() if id != agent_id ]
+        else:
+            return [neigbor for id, neigbor in self.agents.items() if id != agent_id and \
+                self.is_neibor_in_view(agent_view,self.env.player_list[neigbor.player_idx].get_position())]
+    def is_neibor_in_view(self, agent_view, agent2_pos):
+        # agent_view = x_min, x_max, y_min, y_max 
+        return agent2_pos.x >= agent_view[0] and agent2_pos.x <= agent_view[1]\
+            and agent2_pos.y >=agent_view[2] and agent2_pos.y <= agent_view[3]
+        
+ 
+    def agent_pos(self, agent):
+        return self.env.player_list[agent.player_idx].get_position()
+    
 
-
-
-
-
-    @property
-    def agent_pos(self):
-        return {id:self.env.player_list[agent.player_idx].get_position() for id, agent in self.agents.items()}
 
 
     @property

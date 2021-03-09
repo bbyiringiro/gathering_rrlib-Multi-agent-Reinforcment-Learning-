@@ -33,12 +33,16 @@ class GatherMultEnv(MultiAgentEnv):
         self.visualize = DQNSetting.VISUAL_DATA
 
 
-        self.iteration = None
+        self.iteration = 0
         self.n_steps = DQNSetting.TOTAL_STEPS_PER_EPISODE
         self.n_episodes = DQNSetting.TOTAL_NUM_EPISODE
 
         self.set_up()
         self.num_agents = len(self.agents)
+
+        #IMRL
+        self.full_observable = True
+        self.intrinsically_motivated = True
 
 
     def set_up(self):
@@ -99,6 +103,14 @@ class GatherMultEnv(MultiAgentEnv):
             observations[agent_id] = obs
             rewards[agent_id] = reward
             dones[agent_id] = done
+            if self.intrinsically_motivated:
+                in_reward = agent.update_internal(actions[agent_id],\
+                reward,\
+                self.get_neigbors(agent_id, self.env.player_list[agent.player_idx].observable_view),\
+                self.iteration)
+                #TASK separated the metrics collection for intrinsic vs extrinsic
+                rewards[agent_id] +=in_reward
+                # print(in_reward)
         dones["__all__"] = np.any(list(dones.values()))
 
 
@@ -131,7 +143,7 @@ class GatherMultEnv(MultiAgentEnv):
             for y in range(self.env.grid.height):
                 self.draw_a_cell(x, y)
     @property
-    def agent_pos(self):
+    def all_agents_pos(self):
         return {id:self.env.player_list[agent.player_idx].get_position() for id, agent in self.agents.items()}
 
 
@@ -142,4 +154,21 @@ class GatherMultEnv(MultiAgentEnv):
     @property
     def observation_space(self):
         return Box(low=0, high=255, shape=(*GameSetting.player_view, 3), dtype=np.int64) #np.int8
+
+    
+    
+    def get_neigbors(self, agent_id, agent_view):
+        if self.full_observable:
+            return [neigbor for id, neigbor in self.agents.items() if id != agent_id ]
+        else:
+            return [neigbor for id, neigbor in self.agents.items() if id != agent_id and \
+                self.is_neibor_in_view(agent_view,self.env.player_list[neigbor.player_idx].get_position())]
+    def is_neibor_in_view(self, agent_view, agent2_pos):
+        # agent_view = x_min, x_max, y_min, y_max 
+        return agent2_pos.x >= agent_view[0] and agent2_pos.x <= agent_view[1]\
+            and agent2_pos.y >=agent_view[2] and agent2_pos.y <= agent_view[3]
+        
+ 
+    def agent_pos(self, agent):
+        return self.env.player_list[agent.player_idx].get_position()
 

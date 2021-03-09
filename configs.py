@@ -97,7 +97,7 @@ class GameSetting(object):
     HUMAN_TIMESTEP_DELAY = 200
     CELL_SIZE = 20
     APPLE_RESPAWN_TIME = 60  # number of steps the agent moved #60
-    TAGGED_TIME = 100  # number of steps the agent moved # 6
+    TAGGED_TIME = 6  # number of steps the agent moved # 6
     player_view = [42,42]#[16, 21]
     BEAM_DURATION = 10
     GUI = True

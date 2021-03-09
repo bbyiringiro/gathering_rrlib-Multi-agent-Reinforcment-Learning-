@@ -20,7 +20,7 @@ from ray.tune.registry import register_env
 
 
 
- from agent.basic import *
+from agent.basic import *
 from configs import *
 from game.multi_env import *
 

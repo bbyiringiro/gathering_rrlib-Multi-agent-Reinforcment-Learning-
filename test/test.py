@@ -1,5 +1,5 @@
 
-from game.envv2 import *
+from envv2 import *
 from configs import ALL_PLAYER_ACTIONS
 
 if __name__ == '__main__':
