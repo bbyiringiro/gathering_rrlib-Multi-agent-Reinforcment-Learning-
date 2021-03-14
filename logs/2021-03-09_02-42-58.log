@@ -1,6 +1,0 @@
-2021-03-09 02:42:58,594 - WARNING : <===================================>
-2021-03-09 02:42:58,594 - WARNING : Command line environment setting up
-2021-03-09 02:42:58,596 - WARNING : Loading map successfully
-2021-03-09 02:43:24,075 - WARNING : From /Users/billybyiringiro/opt/anaconda3/envs/ssd/lib/python3.8/site-packages/ray/rllib/policy/tf_policy.py:941: Variable.load (from tensorflow.python.ops.variables) is deprecated and will be removed in a future version.
-Instructions for updating:
-Prefer Variable.assign which has equivalent behavior in 2.X.

@@ -27,6 +27,7 @@ class Player(object):
         self.reward = 0  # Current reward
         self.initial_position = None
         self.observable_view=None
+        self.next_position = Point(start_position.x, start_position.y)
 
     def new_episode(self):
         self.apple_eaten = 0

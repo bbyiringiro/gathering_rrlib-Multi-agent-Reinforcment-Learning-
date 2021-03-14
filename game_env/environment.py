@@ -6,7 +6,7 @@ from configs import PlayerDirection
 from utils.utility import TimestepResult
 
 class EnvironmentBase(object):
-    def __init__(self, config):
+    def __init__(self, config, n_tag):
         self.grid = Grid(game_map=config['grid'])
         self.view_array = None
         self.player_list = []
@@ -14,6 +14,7 @@ class EnvironmentBase(object):
         self.max_step_limit = config.get('max_step_limit', 1000)
         self.is_game_over = False
         self.time_watch = Stopwatch()
+        self.N_TAG = n_tag
 
     def seed(self, value):
         """ Initialize the random state of the environment to make results reproducible. """
@@ -84,7 +85,7 @@ class EnvironmentBase(object):
         for player in self.player_list:
             self.convert_view(player)
             grid = self.view_array
-            observation = np.zeros([16, 21], 'int8') # GameSetting.player_view
+            observation = np.zeros(GameSetting.player_view, 'int8') # 
             if player.direction == PlayerDirection.NORTH:
                 x_min = 0 if player.position.x - 10 < 0 else player.position.x - 10
                 x_max = self.grid.width - 1 if player.position.x + 10 > self.grid.width - 1 \
@@ -132,7 +133,8 @@ class EnvironmentBase(object):
             
 
             ## temporarly padd for the required view
-            observation = np.pad(observation, 2, self.pad_with, padder=0)
+            # observation = np.pad(observation, 2, self.pad_with, padder=0)
+            
             player.observation = observation
             player.observable_view = (x_min, x_max, y_min, y_max)
     def pad_with(self, vector, pad_width, iaxis, kwargs):
@@ -169,7 +171,7 @@ class EnvironmentBase(object):
         for player in self.player_list:
             if player.is_tagged:
                 if step - player.tagged_time \
-                            >= GameSetting.TAGGED_TIME:
+                            >= self.N_TAG:
                     player.respawn()
                     # if self.grid[player.position] in [CellType.PLAYER]:
                         # player.position =

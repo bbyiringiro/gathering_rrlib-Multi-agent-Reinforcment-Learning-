@@ -98,7 +98,7 @@ class GameSetting(object):
     CELL_SIZE = 20
     APPLE_RESPAWN_TIME = 60  # number of steps the agent moved #60
     TAGGED_TIME = 6  # number of steps the agent moved # 6
-    player_view = [42,42]#[16, 21]
+    player_view = [16,21]#[16, 21]
     BEAM_DURATION = 10
     GUI = True
     AGENT_VIEW_RANGE = [16, 21]
@@ -128,7 +128,7 @@ class DQNSetting(object):
     EVAL_EPISODES = 5
     TEST_EPISODES = 100
     LEARNING_START_IN_EPISODE = 500  # how many steps does the learning start in the first episode
-    VISUAL_GUI = False  # whether or not to render the game
+    VISUAL_GUI = True  # whether or not to render the game
     CLIP_GRAD = 1.
     VISUAL_DATA = False
     SAVE_FRE = 100

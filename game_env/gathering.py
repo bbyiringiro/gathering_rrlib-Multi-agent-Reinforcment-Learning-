@@ -2,9 +2,11 @@ from .environment import *
 
 class EnvironmentGathering(EnvironmentBase):
 
-    def __init__(self, config):
-        super(EnvironmentGathering, self).__init__(config)
+    def __init__(self, config, n_tag, n_apple):
+        super(EnvironmentGathering, self).__init__(config, n_tag)
         self.apple_list = []
+        self.N_APPLE = n_apple
+
 
     def new_episode(self):
         """Reset the environment and begin a new episode"""
@@ -101,7 +103,7 @@ class EnvironmentGathering(EnvironmentBase):
         for apple in self.apple_list:
             if apple.is_collected:
                 if step - apple.collected_time \
-                            >= GameSetting.APPLE_RESPAWN_TIME:
+                            >= self.N_APPLE:
                     apple.respawn()
 
     def collect_apple(self, player, step):

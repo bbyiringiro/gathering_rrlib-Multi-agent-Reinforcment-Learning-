@@ -2,7 +2,7 @@ from configs import *
 import sys
 import matplotlib.pyplot as plt
 import numpy as np
-from game.gathering import *
+from game_env.gathering import *
 import json
 import time
 from configs import *
@@ -101,8 +101,9 @@ class GatherMultEnv(MultiAgentEnv):
         for agent_id, agent in self.agents.items():
             obs, reward, done= self.move(agent,actions[agent_id])
             observations[agent_id] = obs
+            print(obs.reshape(-1,1).shape)
             rewards[agent_id] = reward
-            in_reward = agent.update(actions[agent_id],\
+            in_reward = agent.update_internal(actions[agent_id],\
                 reward,\
                 self.get_neigbors(agent_id, self.env.player_list[agent.player_idx].observable_view),\
                 self.iteration)
@@ -144,5 +145,6 @@ class GatherMultEnv(MultiAgentEnv):
 
     @property
     def observation_space(self):
-        return Box(low=0, high=255, shape=(*GameSetting.player_view, 3), dtype=np.int64) #np.int8
+        return Box(low=0, high=255, shape=(*GameSetting.player_view, 3), dtype=np.uint8) 
+        
 
