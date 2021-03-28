@@ -2,32 +2,20 @@
    agent policies."""
 
 import argparse
-import gym
 import os
-import random
 
 import ray
-from ray import tune
-from ray.rllib.models import ModelCatalog
-from ray.rllib.utils.framework import try_import_tf
-from ray.rllib.utils.test_utils import check_learning_achieved
 
-from ray.tune import run_experiments
+
 from ray.rllib.agents.registry import get_trainer_class
-from ray.rllib.agents.callbacks import DefaultCallbacks
+from game_env.my_callbacks import MyCallbacks
 
 
-from ray.rllib.agents.pg import PGTrainer, PGTFPolicy, PGTorchPolicy
-from ray.rllib.agents.ppo import PPOTrainer, PPOTFPolicy, PPOTorchPolicy
-from ray.rllib.agents.dqn import DQNTrainer, DQNTFPolicy, DQNTorchPolicy
 
 from ray.tune.registry import register_env
-from model import *
 
-import sys
-sys.path.append("..")
-
-
+from configs import *
+from game_env.multi_env import *
 
 import argparse
 import json
@@ -43,12 +31,10 @@ from ray.cloudpickle import cloudpickle
 from ray.rllib.policy.sample_batch import DEFAULT_POLICY_ID
 from ray.rllib.agents.registry import get_trainer_class
 from ray.rllib.agents.a3c.a3c import A3CTrainer
+from ray.rllib.agents.dqn import DQNTrainer, DQNTFPolicy, DQNTorchPolicy
 
-from model import *
 # from ray.rllib.evaluation.sampler import clip_action
-from social_dilemmas.envs.harvest import HarvestEnv
 
-import utility_funcs
 
 
 def get_rllib_config(path):
@@ -82,13 +68,14 @@ def visualizer_rllib(args):
         config['multiagent'] = pkl['multiagent']
     else:
         multiagent = False
-
+    print(pkl)
     # Create and register a gym+rllib env
     env_creator = pkl['env_config']['func_create']
     env_name = config['env_config']['env_name']
+    print(env_name)
     register_env(env_name, env_creator)
 
-    ModelCatalog.register_custom_model("conv_to_fc_net", VisionNetwork2)
+    # ModelCatalog.register_custom_model("conv_to_fc_net", VisionNetwork2)
 
     # Determine agent and checkpoint
 
@@ -115,22 +102,29 @@ def visualizer_rllib(args):
 
     # Run on only one cpu for rendering purposes if possible; A3C requires two
     if config_run == 'A3C':
-        config['num_workers'] = 2
+        config['num_workers'] = 1
         config["sample_async"] = False
+
     else:
         config['num_workers'] = 0
-    config['callbacks']=DefaultCallbacks
+    config['exploration_config']['initial_epsilon'] = 0.1
+    config['exploration_config']['final_epsilon'] = 0.1
+    config['callbacks']=MyCallbacks
+    #
     # create the agent that will be used to compute the actions
-    agent = get_trainer_class(args.run)(env=env_name, config=config)
+    print(args.run)
+    runner = trainer(env=env_name, config=config)
     # agent = A3CTrainer(env=env_name, config=config)
-    checkpoint = result_dir + '/checkpoint_00000' + args.checkpoint_num
+    checkpoint = result_dir + '/checkpoint_' + str(args.checkpoint_num).rjust(6, '0')
     checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
     print('Loading checkpoint', checkpoint)
-    agent.restore(checkpoint)
-    if hasattr(agent, "local_evaluator"):
-        env = agent.local_evaluator.env
+    config['env_config']['visual'] = True
+    
+    runner.restore(checkpoint)
+    if hasattr(runner, "local_evaluator"):
+        env = runner.local_evaluator.env
     else:
-        env = env_creator('_')
+        env = env_creator(config['env_config'])
 
     if args.save_video:
         shape = env.base_map.shape
@@ -138,24 +132,25 @@ def visualizer_rllib(args):
                     for i in range(config["horizon"])]
 
     if True:#hasattr(agent, "local_evaluator"):
-        # multiagent = agent.local_evaluator.multiagent
+        # multiagent = runner.local_evaluator.multiagent
         if multiagent:
-            policy_agent_mapping = agent.config["multiagent"][
+            policy_agent_mapping = runner.config["multiagent"][
                 "policy_mapping_fn"]
             mapping_cache = {}
-        # policy_map = agent.local_evaluator.policy_map
-        policy_map = agent.workers.local_worker().policy_map
+        # policy_map = runner.local_evaluator.policy_map
+        policy_map = runner.workers.local_worker().policy_map
         state_init = {p: m.get_initial_state() for p, m in policy_map.items()}
-        # use_lstm = {p: len(s) > 0 for p, s in state_init.items()}
+        use_lstm = {p: len(s) > 0 for p, s in state_init.items()}
     else:
         multiagent = False
         use_lstm = {DEFAULT_POLICY_ID: False}
 
-    steps = 0
-    while steps < (config['horizon'] or steps + 1):
+    roll = 0
+    while roll < args.num_rollouts:
         state = env.reset()
         done = False
         reward_total = 0.0
+        steps = 0
         while not done and steps < (config['horizon'] or steps + 1):
             if multiagent:
                 action_dict = {}
@@ -164,26 +159,26 @@ def visualizer_rllib(args):
                     if a_state is not None:
                         policy_id = mapping_cache.setdefault(
                             agent_id, policy_agent_mapping(agent_id))
-                        p_use_lstm = False #use_lstm[policy_id]
+                        p_use_lstm =  use_lstm[policy_id]
                         if p_use_lstm:
-                            a_action, p_state_init, _ = agent.compute_action(
+                            a_action, p_state_init, _ = runner.compute_action(
                                 a_state,
                                 state=state_init[policy_id],
                                 policy_id=policy_id)
                             state_init[policy_id] = p_state_init
                         else:
-                            a_action = agent.compute_action(
+                            a_action = runner.compute_action(
                                 a_state, policy_id=policy_id)
                         action_dict[agent_id] = a_action
                 action = action_dict
             else:
                 if use_lstm[DEFAULT_POLICY_ID]:
-                    action, state_init, _ = agent.compute_action(
+                    action, state_init, _ = runner.compute_action(
                         state, state=state_init)
                 else:
-                    action = agent.compute_action(state)
+                    action = runner.compute_action(state)
 
-            if agent.config["clip_actions"]:
+            if runner.config["clip_actions"]:
                 # clipped_action = clip_action(action, env.action_space)
                 next_state, reward, done, _ = env.step(action)
             else:
@@ -201,7 +196,9 @@ def visualizer_rllib(args):
 
             steps += 1
             state = next_state
-        print("Episode reward", reward_total)
+        print(f"Episode {roll} reward :  {reward_total}")
+        roll +=1
+        
 
     if args.save_video:
         path = os.path.abspath(os.path.dirname(__file__)) + '/videos'
@@ -239,7 +236,7 @@ def create_parser():
     parser.add_argument(
         '--num-rollouts',
         type=int,
-        default=1,
+        default=10,
         help='The number of rollouts to visualize.')
     parser.add_argument(
         '--save-video',

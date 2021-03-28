@@ -12,6 +12,7 @@ from ray.rllib.env import MultiAgentEnv
 from agent.basic import GeneralAgent
 from gym.spaces import Box
 from gym.spaces import Discrete
+from utils.utility import convert_observation_to_rgb
 
 
 from configs import ALL_PLAYER_ACTIONS
@@ -51,7 +52,7 @@ class GatherMultEnv(MultiAgentEnv):
         self.logger.warning("Command line environment setting up")
         with open('gathering.json') as cfg:
             env_config = json.load(cfg)
-        self.env = EnvironmentGathering(env_config)
+        self.env = EnvironmentGathering(env_config, 6, 60)
         self.logger.warning("Loading map successfully")
         self.start_time = time.time()
 
@@ -66,7 +67,8 @@ class GatherMultEnv(MultiAgentEnv):
 
     def show(self, img):
         plt.imshow(img, interpolation='nearest')
-        # plt.draw()
+        plt.draw()
+        # plt.savefig('frames/'+str(self.iteration)+'.pdf')
         plt.pause(.0001)
 
 
@@ -114,7 +116,7 @@ class GatherMultEnv(MultiAgentEnv):
         dones["__all__"] = np.any(list(dones.values()))
 
 
-        # self.agent_pos(
+        # full_obs_rgb = convert_observation_to_rgb(self.env.view_array, self.env.view_array, )
         # self.show(observations['agent-0'])
         if in_reward < 0:
             import sys

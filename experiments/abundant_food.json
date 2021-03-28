@@ -13,11 +13,11 @@
     "num_workers_per_device": 2, 
     "reuse_actors": false, 
     "resume": false, 
-    "verbose": 0, 
+    "verbose": 1, 
     "framework": "tf", 
     "from_checkpoint": "None",
     "n_tag":6,
-    "n_apple":60,
+    "n_apple":6,
     "imrl":false,
     "full_obs":false,
     "visual":false

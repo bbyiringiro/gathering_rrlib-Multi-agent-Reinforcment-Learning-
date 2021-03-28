@@ -3,6 +3,10 @@ import pygame
 import logging
 import numpy as np
 import random
+import sys
+from configs import *
+
+
 
 def set_global_seeds(i):
     try:
@@ -72,3 +76,17 @@ def loggerConfig(log_file):
     logger.addHandler(file_handler)
     logger.addHandler(ch)
     return logger
+
+def convert_observation_to_rgb(observation, h, w, channels=3):
+        """
+        convert the grid map to images according to corresponding cell type
+        :return: the np.array with shape of (img_h, img_w, img_c) and data type of np.uint8
+        """
+        observation_rgb = np.zeros([h, w, channels], 'int')
+        for x in np.arange(observation.shape[0]):
+            for y in np.arange(observation.shape[1]):
+                if observation[x, y] == CellType.EMPTY:
+                    observation_rgb[x, y, :] = Colors.SCREEN_BACKGROUND
+                else:
+                    observation_rgb[x, y, :] = Colors.CELL_TYPE[observation[x, y]]
+        return np.uint8(observation_rgb)

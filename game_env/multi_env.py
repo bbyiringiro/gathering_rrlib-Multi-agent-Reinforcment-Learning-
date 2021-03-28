@@ -41,7 +41,7 @@ class GatherMultEnv(MultiAgentEnv):
             #IMRL
             self.full_observable = env_config['full_obs']
             self.intrinsically_motivated = env_config['imrl']
-            print(f" imrl {env_config['imrl']} ")
+            # print(f" imrl {env_config['imrl']} ")
         self.num_agents = len(self.agents)
 
         
@@ -104,16 +104,21 @@ class GatherMultEnv(MultiAgentEnv):
         dones = {}
         # info = {'agent-0':np.array([0]), 'agent-1':np.array([0])}
         info={}
+
+        calculate_aggress = False
+        if not self.env.player_list[0].is_tagged and not self.env.player_list[1].is_tagged:
+            calculate_aggress = True
         
 
-        aggressivenss = 0
         for agent_id, agent in self.agents.items():
             obs, reward, done = self.move(agent,actions[agent_id])
             observations[agent_id] = obs.reshape(-1,1)
             rewards[agent_id] = reward
             dones[agent_id] = done
             info[agent_id] = {'exR':reward}
-            info[agent_id]['agent_action']= actions[agent_id]
+            info[agent_id]['iter'] = self.iteration
+            info[agent_id]['tagged'] = int(self.env.player_list[agent.player_idx].is_tagged)
+
             if self.intrinsically_motivated:
                 in_reward = agent.update_internal(actions[agent_id],\
                 reward,\
@@ -125,6 +130,16 @@ class GatherMultEnv(MultiAgentEnv):
                 # print(in_reward)
             else:
                 info[agent_id]['inR'] = 0
+
+        if calculate_aggress:
+            for agent_id, agent in self.agents.items():
+                if actions[agent_id] == PlayerAction.USE_BEAM:
+                    info[agent_id]['aggress'] = 1
+                else:
+                    info[agent_id]['aggress'] = 0
+        
+        
+
             
                 
         dones["__all__"] = np.any(list(dones.values()))
@@ -192,4 +207,5 @@ class GatherMultEnv(MultiAgentEnv):
  
     def agent_pos(self, agent):
         return self.env.player_list[agent.player_idx].get_position()
+    
 

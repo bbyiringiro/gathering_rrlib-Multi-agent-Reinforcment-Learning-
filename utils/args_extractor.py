@@ -55,6 +55,10 @@ def get_args():
             action='store_true',
             help="Whether to attempt to resume previous Tune experiments.")
     parser.add_argument(
+            "--visual",
+            action='store_true',
+            help="Whether to attempt to resume previous Tune experiments.")
+    parser.add_argument(
             "--verbose",
             type=int,
             default=1,

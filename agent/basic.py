@@ -110,7 +110,7 @@ class GeneralAgent(object):
                 # W = (2*self.eligibility_trace - self.context_memory*(T-S))/self.context_memory*(T-S) # w = (2r_t - Mx(T-S))/Mx(T-S)
                 W = (2*self.eligibility_trace - self.context_memory*max(1, T-S))/(self.context_memory*max(1, T-S))
             elif self.wellbeing_fx  == 'variance':
-                W = (self.gamma*self.el_alpha*self.eligibility_trace + _reward - self.eligibility_trace)/self.context_memory*(T-S) # w= (r_t+1 - r_t)/Mx(T-S)
+                W = (self.gamma*self.el_alpha*self.eligibility_trace + _reward - self.eligibility_trace)/(self.context_memory*(T-S)) # w= (r_t+1 - r_t)/Mx(T-S)
             elif self.wellbeing_fx == 'aspiration':
                 h = 1
                 W = np.tanh(h*(self.eligibility_trace/self.context_memory-self.aspirational))
@@ -156,7 +156,7 @@ class GeneralAgent(object):
                 E_sad = -(self.core_f(-1*wellbeing_appraisal)*self.core_f(fairness_appraisal))
         emotions = [E_joy>0, E_sad<0, E_anger<0, E_fearful<0]
         # print(emotions)
-        assert(sum(emotions) <2, "detected more than one emotions")
+        assert sum(emotions) <2, "detected more than one emotions"
 
         return E_joy+E_sad+E_fearful+E_anger
 
