@@ -5,7 +5,7 @@
     "num_agents": 2, 
     "train_batch_size": 32, 
     "checkpoint_frequency": 500, 
-    "training_iterations": 500, 
+    "training_iterations": 10000, 
     "num_cpus": 2, 
     "num_gpus": 1, 
     "use_gpus_for_workers": false, 
@@ -17,8 +17,8 @@
     "framework": "tf", 
     "from_checkpoint": "None",
     "n_tag":6,
-    "n_apple":60,
-    "imrl":false,
+    "n_apple":120,
+    "imrl":true,
     "full_obs":false,
     "visual":false
 }
