@@ -102,8 +102,8 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
         "env_config": {
             "num_agents": num_agents,
             "visual":args.visual,
-            "n_tag":tune.grid_search([1, 50, 100, 200]),#args.n_tag,
-            "n_apple":tune.grid_search([1]),#args.n_apple,
+            "n_tag":tune.grid_search([10]),#args.n_tag,
+            "n_apple":tune.grid_search([1, 10, 50 , 100, 200]),#args.n_apple,
             "init":False,
             "imrl":args.imrl,
             "full_obs":args.full_obs,
@@ -130,7 +130,7 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
         # Size of the replay buffer. Note that if async_updates is set, then
         # each worker will have a replay buffer of this size.
         "dueling": False,
-        "double_q": False,
+        "double_q": True,
             # === Exploration Settings ===
         "exploration_config": {
             # The Exploration class to use.
@@ -138,10 +138,10 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
             # Config for the Exploration class' constructor:
             "initial_epsilon": 1.0,
             "final_epsilon": 0.1, #0.02
-            "epsilon_timesteps": 500000,  # Timesteps over which to anneal epsilon. # 500000
+            "epsilon_timesteps": int(1e6),  # Timesteps over which to anneal epsilon. # 500000
         },
-        "evaluation_interval":5,
-        "evaluation_num_episodes":10,
+        "evaluation_interval":500,
+        "evaluation_num_episodes":50,
         "evaluation_num_workers":1,
         "evaluation_config": {
             "explore": True,
@@ -176,16 +176,16 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
         "num_cpus_per_worker": num_cpus_per_worker,   # Can be a fraction
         # General
         # "num_envs_per_worker": 8,
-        "learning_starts": 1000,
-        "train_batch_size": int(train_batch_size),
-        "buffer_size": int(1e5),
-        "compress_observations": True,
-        "rollout_fragment_length": 16,
-        "gamma": .99,
-        # "n_step": 3,
-        "prioritized_replay_alpha": 0.5,
-        "final_prioritized_replay_beta": 1.0,
-        "target_network_update_freq": 500,
+        # "learning_starts": 1000,
+        # "train_batch_size": int(train_batch_size),
+        # "buffer_size": int(1e5),
+        # "compress_observations": True,
+        # "rollout_fragment_length": 16,
+        # "gamma": .99,
+        # # "n_step": 3,
+        # "prioritized_replay_alpha": 0.5,
+        # "final_prioritized_replay_beta": 1.0,
+        # "target_network_update_freq": 500,
 
 
     })
@@ -221,7 +221,6 @@ def main(args):
     else:
         exp_name = args.exp_name+affix
 
-    exp_name = 'test'
     print('starting experiment', exp_name)
     tune.run(alg_run,
              name=exp_name,

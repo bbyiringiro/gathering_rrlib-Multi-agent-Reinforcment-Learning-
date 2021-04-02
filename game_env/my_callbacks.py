@@ -6,13 +6,14 @@ from ray.rllib.policy import Policy
 import numpy as np
 
 def equality_metric(players_rewards):
+    total_reward = np.sum(players_rewards)
+    if total_reward == 0: return 1
     N = len(players_rewards)
     diff_sum = 0
     for i in range(N):
         for j in  range(N):
             diff_sum += np.abs(players_rewards[i]-players_rewards[j])
-    total_reward = np.sum(players_rewards)
-    denominator =  2.0*N*total_reward if total_reward>0 else 1
+    denominator =  2.0*N*total_reward 
     return 1.0 - diff_sum/denominator
 
 class MyCallbacks(DefaultCallbacks):

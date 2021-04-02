@@ -1,6 +1,8 @@
 from collections import deque
 from configs import PlayerAction
 from configs import GameSetting, DQNSetting
+import sys
+
 
 from configs import ALL_PLAYER_ACTIONS
 import numpy as np
@@ -26,7 +28,7 @@ class GeneralAgent(object):
         self.el_alpha=0.5
         
         #defection in M time
-        self.context_memory = 100
+        self.context_memory = 1000
         self.defectingDeque = deque(maxlen=self.context_memory)
         
 
@@ -37,13 +39,17 @@ class GeneralAgent(object):
         self.S=0
         self.P =0 
         #A0
-        self.aspirational = self.R + self.T + self.S + self.P
+        self.aspirational = (self.R + self.T + self.S + self.P)/4
         self.aspiration_beta = 0.2 # aspiration learning rate
 
         #Core Derivation function
         self.f_u = 1 # conceder 0 < u < 1, linear: u=1, and boulware u>u
         #secondarary emotion derivation g_x
         self.g_v = 1 # 0.2 0.6 1, 2, 3, 5, 10 
+    def reset(self):
+        self.defectingDeque.clear()
+        self.eligibility_trace= 0
+
 
         
 
@@ -84,10 +90,12 @@ class GeneralAgent(object):
 
     def social_fairness_context(self, neightbors):
         #cn = 1/N sum((ni_c-ni_d/M)
+        if len(neightbors) == 0: return 0
         Cn=0
         for agent in neightbors:
-            Cn += (agent.context_memory-2*agent.defection_n)/agent.context_memory
-        Cn /=max(1,len(neightbors))
+            cooperating_rate = agent.context_memory-2*agent.defection_n
+            Cn += cooperating_rate/agent.context_memory
+        Cn /=len(neightbors)
 
         return Cn;
         
@@ -106,22 +114,17 @@ class GeneralAgent(object):
         S = self.S #sucker
         W = 0
         try:
-            if self.wellbeing_fx == 'absolute':
-                # W = (2*self.eligibility_trace - self.context_memory*(T-S))/self.context_memory*(T-S) # w = (2r_t - Mx(T-S))/Mx(T-S)
-                W = (2*self.eligibility_trace - self.context_memory*max(1, T-S))/(self.context_memory*max(1, T-S))
-            elif self.wellbeing_fx  == 'variance':
-                W = (self.gamma*self.el_alpha*self.eligibility_trace + _reward - self.eligibility_trace)/(self.context_memory*(T-S)) # w= (r_t+1 - r_t)/Mx(T-S)
+            if self.wellbeing_fx  == 'variance':
+                W = ((self.gamma*self.el_alpha*self.eligibility_trace + _reward) - self.eligibility_trace)/self.context_memory
             elif self.wellbeing_fx == 'aspiration':
                 h = 1
-                W = np.tanh(h*(self.eligibility_trace/self.context_memory-self.aspirational))
+                W = np.tanh(h*((self.eligibility_trace/self.context_memory) - self.aspirational))
                 self.aspirational = (1-self.aspiration_beta)*self.aspirational + self.aspiration_beta*(self.eligibility_trace/self.context_memory)
             else:
                 print("the wellbeing function not known")
-                import sys
                 sys.exit(1)
         except Exception as err:
             print(err)
-            import sys
             sys.exit(1)
 
         return W

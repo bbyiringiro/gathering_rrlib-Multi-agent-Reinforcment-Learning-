@@ -78,6 +78,7 @@ class GatherMultEnv(MultiAgentEnv):
         obs = {}
         for agent_id, agent in self.agents.items():
             agent.begin_episode()
+            agent.reset()
             obs[agent_id]= self.env.player_list[agent.player_idx].convert_observation_to_rgb().reshape(-1, 1)
         return obs
         
