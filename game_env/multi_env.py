@@ -36,13 +36,38 @@ class GatherMultEnv(MultiAgentEnv):
         self.iteration = 0
         self.n_steps = DQNSetting.TOTAL_STEPS_PER_EPISODE
         self.n_episodes = DQNSetting.TOTAL_NUM_EPISODE
+        
+        
         if not env_config['init']:
             self.set_up(env_config)
-            #IMRL
-            self.full_observable = env_config['full_obs']
-            self.intrinsically_motivated = env_config['imrl']
-            # print(f" imrl {env_config['imrl']} ")
+
+        self.intrinsically_motivated = False
+        self.imrl_reward_alpha = 1
+        
+        #IMRL
+        if env_config.get('imrl', -1) != -1:
+            if env_config['imrl']['use']:
+                self.full_observable = env_config['imrl']['full_obs']
+                self.intrinsically_motivated = env_config['imrl']['use']
+            
+                for agent in self.agents.values():
+                    agent.fairness_gamma = env_config['imrl']['fairness_gamma']
+                    agent.fairness_alpha = env_config['imrl']['fairness_alpha']
+                    agent.fairness_epsilon = env_config['imrl']['fairness_epsilon']
+                    agent.reward_gamma = env_config['imrl']['reward_gamma']
+                    agent.reward_alpha = env_config['imrl']['reward_alpha']
+                    agent.aspirational = env_config['imrl']['aspirational']
+                    agent.aspiration_beta =env_config['imrl']['aspiration_beta']
+
+                    agent.f_u = env_config['imrl']['f_u']
+                    agent.g_v = env_config['imrl']['g_v']
+                    self.imrl_reward_alpha = env_config['imrl']['imrl_reward_alpha']
+            
         self.num_agents = len(self.agents)
+        
+        
+
+
 
         
 
@@ -112,25 +137,27 @@ class GatherMultEnv(MultiAgentEnv):
         
 
         for agent_id, agent in self.agents.items():
-            obs, reward, done = self.move(agent,actions[agent_id])
+            obs, ex_reward, done = self.move(agent,actions[agent_id])
             observations[agent_id] = obs.reshape(-1,1)
-            rewards[agent_id] = reward
+            
             dones[agent_id] = done
-            info[agent_id] = {'exR':reward}
+            info[agent_id] = {'exR':ex_reward}
             info[agent_id]['iter'] = self.iteration
             info[agent_id]['tagged'] = int(self.env.player_list[agent.player_idx].is_tagged)
-
+            in_reward = 0
             if self.intrinsically_motivated:
-                in_reward = agent.update_internal(actions[agent_id],\
-                reward,\
+                in_reward, joy, sad, fear, anger = agent.update_internal(actions[agent_id],\
+                ex_reward,\
                 self.get_neigbors(agent_id, self.env.player_list[agent.player_idx].observable_view),\
-                self.iteration)
-                #TASK separated the metrics collection for intrinsic vs extrinsic
-                rewards[agent_id] += in_reward
+                self.iteration, calculate_aggress)
+                # TASK separated the metrics collection for intrinsic vs extrinsic
+                
                 info[agent_id]['inR'] = in_reward
                 # print(in_reward)
             else:
                 info[agent_id]['inR'] = 0
+            rewards[agent_id] = self.imrl_reward_alpha * in_reward + (1-self.imrl_reward_alpha)*ex_reward
+            # print(rewards[agent_id], ex_reward, in_reward)
 
         if calculate_aggress:
             for agent_id, agent in self.agents.items():

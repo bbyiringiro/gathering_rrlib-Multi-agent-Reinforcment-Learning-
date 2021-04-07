@@ -32,6 +32,9 @@ class MyCallbacks(DefaultCallbacks):
         episode.user_data["tagged_agents"] = []
         episode.user_data["agent_rewards"] = {'agent-'+str(i):0 for i in range(self.num_of_agents)}
 
+        episode.user_data["sustain"] = {'agent-'+str(i):[] for i in range(self.num_of_agents)}
+
+
     def on_episode_step(self, *, worker: RolloutWorker, base_env: BaseEnv,
                         episode: MultiAgentEpisode, env_index: int, **kwargs):
         
@@ -53,7 +56,8 @@ class MyCallbacks(DefaultCallbacks):
             aggress += info.get('aggress',-1)
 
             if(info['exR'] > 0):
-                sustain += info.get('iter')
+                episode.user_data["sustain"][agent_key].append(info.get('iter'))
+
 
             n_tagged += info['tagged']
 
@@ -72,6 +76,13 @@ class MyCallbacks(DefaultCallbacks):
     def on_episode_end(self, *, worker: RolloutWorker, base_env: BaseEnv,
                        policies: Dict[str, Policy], episode: MultiAgentEpisode,
                        env_index: int, **kwargs):
+
+        sus = 0
+        for i in range(self.num_of_agents):
+            agent_key = 'agent-'+str(i)
+            sus += np.average(episode.user_data["sustain"][agent_key]) if len(episode.user_data["sustain"][agent_key]) >0 else 0
+        sus /=self.num_of_agents
+
         T = len(episode.user_data["extrinsic_reward"]) # episode lenght
 
         episode.custom_metrics["ExReward"] = np.sum(episode.user_data["extrinsic_reward"])
@@ -79,7 +90,7 @@ class MyCallbacks(DefaultCallbacks):
         episode.custom_metrics["aggresseviness"] = np.sum(episode.user_data["aggress"])/max(1, len(episode.user_data["aggress"]))
         episode.custom_metrics["equality"] = equality_metric(list(episode.user_data["agent_rewards"].values()))
         episode.custom_metrics["Utalitarian_metric"] = episode.custom_metrics["ExReward"]/T
-        episode.custom_metrics["sustainability"] = np.sum(episode.user_data["sustain"])/self.num_of_agents
+        episode.custom_metrics["sustainability"] = sus
         episode.custom_metrics["peace_metric"] = (T*self.num_of_agents - np.sum(episode.user_data["tagged_agents"]))/T
         
         

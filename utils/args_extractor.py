@@ -73,8 +73,7 @@ def get_args():
         default=None,
         help="Full path to a checkpoint file for restoring a previously saved "
         "Trainer state.")
-    parser.add_argument('--json_file', nargs="?", type=str, default=None,
-                        help='')
+    parser.add_argument('json_file',help='')
 
     args = parser.parse_args()
 

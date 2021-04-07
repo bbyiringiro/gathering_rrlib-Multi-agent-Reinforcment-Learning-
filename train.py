@@ -102,11 +102,11 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
         "env_config": {
             "num_agents": num_agents,
             "visual":args.visual,
-            "n_tag":tune.grid_search([10]),#args.n_tag,
-            "n_apple":tune.grid_search([1, 10, 50 , 100, 200]),#args.n_apple,
+            "exp":args.exp_index,
+            "n_tag":10,#tune.grid_search([10]),#args.n_tag,
+            "n_apple":10,#tune.grid_search([1, 10, 50 , 100, 200]),#args.n_apple,
             "init":False,
-            "imrl":args.imrl,
-            "full_obs":args.full_obs,
+            "imrl":{'use':False},
             "env_name":env_name,
             "run":algorithm,
             "func_create":tune.function(env_creator),
@@ -157,7 +157,7 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
         },
         "lr": 0.00025, #5e-4,
         # Adam epsilon hyper parameter
-        "adam_epsilon": tune.grid_search([1e-8, 0.001]),
+        "adam_epsilon": tune.grid_search([1e-8, 1e-6]),
 
 
 
@@ -189,6 +189,11 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
 
 
     })
+
+    if args.imrl['use']:
+        config['env_config'].update({
+            'imrl':args.imrl,
+        })
 
     print(num_workers, gpus_for_driver, cpus_for_driver, num_gpus_per_worker, num_cpus_per_worker)
 #     # 2 0 1 0 0.5

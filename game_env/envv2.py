@@ -1,5 +1,6 @@
 from configs import *
-import sys
+import sys,os
+sys.path.append('..')
 import matplotlib.pyplot as plt
 import numpy as np
 from game_env.gathering import *
@@ -24,14 +25,14 @@ class GatherMultEnv(MultiAgentEnv):
 
 
         self.screen = None
-        self.visual =DQNSetting.VISUAL_GUI
+        self.visual =True
         self.env = None
         
         self.agents = {} #[]
         self.timestep_watch = Stopwatch()
         self.logger = Params().logger
         self.episode = None  # number of episode for training
-        self.visualize = DQNSetting.VISUAL_DATA
+        self.visualize = True
 
 
         self.iteration = None
@@ -96,31 +97,40 @@ class GatherMultEnv(MultiAgentEnv):
     def step(self, actions):
         # Main game loop.
         self.iteration += 1  
+        if self.iteration < 1000:
+            self.iteration += 0
         observations = {}
         rewards = {}
         dones = {}
         info = {}
+        calculate_aggress = False
+        if not self.env.player_list[0].is_tagged and not self.env.player_list[1].is_tagged:
+            calculate_aggress = True
         for agent_id, agent in self.agents.items():
             obs, reward, done= self.move(agent,actions[agent_id])
             observations[agent_id] = obs
             print(obs.reshape(-1,1).shape)
             rewards[agent_id] = reward
-            in_reward = agent.update_internal(actions[agent_id],\
+            in_reward, joy, sad, fear, anger = agent.update_internal(actions[agent_id],\
                 reward,\
                 self.get_neigbors(agent_id, self.env.player_list[agent.player_idx].observable_view),\
-                self.iteration)
+                self.iteration, calculate_aggress)
             print(f' InR: {in_reward}')
-            print(f'elibility trace {agent_id} {agent.eligibility_trace}')
-            print(f'defections n{agent_id} {agent.defection_n}')
+            # if in_reward <0:
+            #     import time
+            #     time.sleep(5)
+            
+            # print(f'elibility trace {agent_id} {agent.eligibility_trace}')
+            # print(f'defections n{agent_id} {agent.defection_n}')
             dones[agent_id] = done
         dones["__all__"] = np.any(list(dones.values()))
 
 
         # full_obs_rgb = convert_observation_to_rgb(self.env.view_array, self.env.view_array, )
         # self.show(observations['agent-0'])
-        if in_reward < 0:
-            import sys
-            sys.exit()
+        # if in_reward < 0:
+        #     import sys
+        #     sys.exit()
         return observations, rewards, dones, info
     
     def get_neigbors(self, agent_id, agent_view):

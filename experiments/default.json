@@ -18,7 +18,9 @@
     "from_checkpoint": "None",
     "n_tag":6,
     "n_apple":60,
-    "imrl":false,
+    "imrl":{
+        "use":false
+    },
     "full_obs":false,
     "visual":false
 }
