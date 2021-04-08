@@ -102,6 +102,7 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
         "env_config": {
             "num_agents": num_agents,
             "visual":args.visual,
+            "exp":args.exp_index,
             "n_tag":10,#tune.grid_search([10]),#args.n_tag,
             "n_apple":10,#tune.grid_search([1, 10, 50 , 100, 200]),#args.n_apple,
             "init":False,
@@ -156,7 +157,7 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
         },
         "lr": 0.00025, #5e-4,
         # Adam epsilon hyper parameter
-        "adam_epsilon": tune.grid_search([1e-8, 0.001]),
+        "adam_epsilon": tune.grid_search([1e-8, 1e-6]),
 
 
 
@@ -208,7 +209,7 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
 
 
 def main(args):
-    ray.init()
+    ray.init(address="auto")
     hparams = gathering_params
  
     alg_run, env_name, config = setup(args.env, hparams, args.algorithm,

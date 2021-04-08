@@ -80,19 +80,19 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
     # config['env_config']['N_tag'] = N
 
     # Calculate device configurations
-    gpus_for_driver = int(use_gpu_for_driver)
-    cpus_for_driver = 1 - gpus_for_driver
-    if use_gpus_for_workers:
-        spare_gpus = (num_gpus - int(gpus_for_driver))
-        num_workers = int(spare_gpus * num_workers_per_device)
-        num_gpus_per_worker = spare_gpus / num_workers
-        num_cpus_per_worker = 0
-    else:
-        print(num_cpus)
-        spare_cpus = (int(num_cpus) - int(cpus_for_driver))
-        num_workers = int(spare_cpus * num_workers_per_device)
-        num_gpus_per_worker = 0
-        num_cpus_per_worker = spare_cpus / num_workers
+    # gpus_for_driver = int(use_gpu_for_driver)
+    # cpus_for_driver = 1 - gpus_for_driver
+    # if use_gpus_for_workers:
+    #     spare_gpus = (num_gpus - int(gpus_for_driver))
+    #     num_workers = int(spare_gpus * num_workers_per_device)
+    #     num_gpus_per_worker = spare_gpus / num_workers
+    #     num_cpus_per_worker = 0
+    # else:
+    #     print(num_cpus)
+    #     spare_cpus = (int(num_cpus) - int(cpus_for_driver))
+    #     num_workers = int(spare_cpus * num_workers_per_device)
+    #     num_gpus_per_worker = 0
+    #     num_cpus_per_worker = spare_cpus / num_workers
 
 
 
@@ -101,9 +101,10 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
         "env": env_name,
         "env_config": {
             "num_agents": num_agents,
-            "visual":args.visual,
-            "n_tag":10,#tune.grid_search([10]),#args.n_tag,
-            "n_apple":10,#tune.grid_search([1, 10, 50 , 100, 200]),#args.n_apple,
+            "visual":False,
+            "exp":'optmizing',
+            "n_tag":args.n_tag,
+            "n_apple":args.n_apple,
             "init":False,
             "imrl":{'use':False},
             "env_name":env_name,
@@ -111,7 +112,7 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
             "func_create":tune.function(env_creator),
         },
         "callbacks": MyCallbacks,
-        "num_gpus": args.num_gpus,
+        
         "multiagent": {
             "policies": policies,
             "policy_mapping_fn": tune.function(policy_mapping_fn)
@@ -119,7 +120,7 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
         "model": {
             'fcnet_hiddens':[32,32],
         },
-        "framework": args.framework,
+        "framework": 'tf',
         
         # Update the replay buffer with this many samples at once. Note that
         # this setting applies per-worker if num_workers > 1.
@@ -140,7 +141,7 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
             "epsilon_timesteps": int(1e6),  # Timesteps over which to anneal epsilon. # 500000
         },
         "evaluation_interval":500,
-        "evaluation_num_episodes":50,
+        "evaluation_num_episodes":10,
         "evaluation_num_workers":1,
         "evaluation_config": {
             "explore": True,
@@ -156,7 +157,7 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
         },
         "lr": 0.00025, #5e-4,
         # Adam epsilon hyper parameter
-        "adam_epsilon": tune.grid_search([1e-8, 0.001]),
+        "adam_epsilon": 1e-8,
 
 
 
@@ -168,13 +169,15 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
         # [[0, hparams['lr_init']],
         #     [20000000, hparams['lr_final']]],
         # "entropy_coeff": hparams['entropy_coeff'],
-        "num_workers": num_workers,
-        "num_gpus": gpus_for_driver,  # The number of GPUs for the driver
-        "num_cpus_for_driver": cpus_for_driver,
+        "num_envs_per_worker": 8,
+        "num_gpus": 4,
+        "num_gpus_per_worker": 1,
+        # "num_workers": num_workers,
+        # "num_gpus": gpus_for_driver,  # The number of GPUs for the driver
+        # "num_cpus_for_driver": cpus_for_driver,
         # "num_gpus_per_worker": num_gpus_per_worker,   # Can be a fraction
-        "num_cpus_per_worker": num_cpus_per_worker,   # Can be a fraction
+        # "num_cpus_per_worker": num_cpus_per_worker,   # Can be a fraction
         # General
-        # "num_envs_per_worker": 8,
         # "learning_starts": 1000,
         # "train_batch_size": int(train_batch_size),
         # "buffer_size": int(1e5),
@@ -189,13 +192,25 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
 
     })
 
-    if args.imrl['use']:
-        config['env_config'].update({
-            'imrl':args.imrl,
-        })
+    config['env_config'].update({
+        'imrl':{"use":True,
+                "imrl_reward_alpha":1,
+                "full_obs":False,
+                "fairness_gamma":0.99,
+                "fairness_alpha": 1,
+                "fairness_epsilon":0.1,
+                "reward_gamma": 0.99,
+                "reward_alpha": 1,
+                "aspirational": 0.5,
+                "aspiration_beta": 0.01,
+                "f_u": 1,
+                "g_v": 1,
+                "core":tune.grid_search(['fw', 'wf']),
+                "wellbeing_fx":tune.grid_search(['variance', 'aspiration'])
+        }
+    })
 
-    print(num_workers, gpus_for_driver, cpus_for_driver, num_gpus_per_worker, num_cpus_per_worker)
-#     # 2 0 1 0 0.5
+    # print(f"works {num_workers}, gpu for drive {gpus_for_driver}, cpu for drive {cpus_for_driver}, num_works on gpu {num_gpus_per_worker} , workers cpu {num_cpus_per_worker}")
 
 
 
@@ -208,6 +223,7 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
 
 
 def main(args):
+    # ray.init(address="auto")
     ray.init()
     hparams = gathering_params
  
@@ -218,14 +234,16 @@ def main(args):
                                       args.use_gpus_for_workers,
                                       args.use_gpu_for_driver,
                                       args.num_workers_per_device)
-    learning_type = 'imrl' if args.imrl else ''
-    affix = f"T{args.n_tag}_P{args.n_apple}_{learning_type}"
-    if args.exp_name is None:
-        exp_name = args.env + '_' + args.algorithm+affix
-    else:
-        exp_name = args.exp_name+affix
+    # learning_type = 'imrl' if args.imrl else ''
+    # affix = f"T{args.n_tag}_P{args.n_apple}_{learning_type}"
+    # if args.exp_name is None:
+    #     exp_name = args.env + '_' + args.algorithm+affix
+    # else:
+    #     exp_name = args.exp_name+affix
+    exp_name='gathering_optimizer_core_wellbeing'
 
     print('starting experiment', exp_name)
+    print(args.resume)
     tune.run(alg_run,
              name=exp_name,
              stop= {
@@ -244,3 +262,5 @@ if __name__ == '__main__':
     args, device = get_args()
     main(args)
 
+
+  

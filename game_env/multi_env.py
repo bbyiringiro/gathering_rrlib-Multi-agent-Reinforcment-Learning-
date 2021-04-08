@@ -51,6 +51,8 @@ class GatherMultEnv(MultiAgentEnv):
                 self.intrinsically_motivated = env_config['imrl']['use']
             
                 for agent in self.agents.values():
+                    agent.core = env_config['imrl']['core']
+                    agent.wellbeing_fx = env_config['imrl']['wellbeing_fx']
                     agent.fairness_gamma = env_config['imrl']['fairness_gamma']
                     agent.fairness_alpha = env_config['imrl']['fairness_alpha']
                     agent.fairness_epsilon = env_config['imrl']['fairness_epsilon']

@@ -74,6 +74,7 @@ def visualizer_rllib(args):
     env_name = config['env_config']['env_name']
     print(env_name)
     register_env(env_name, env_creator)
+    config["record_env"] = False
 
     # ModelCatalog.register_custom_model("conv_to_fc_net", VisionNetwork2)
 
