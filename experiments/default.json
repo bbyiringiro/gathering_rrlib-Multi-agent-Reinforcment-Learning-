@@ -6,7 +6,7 @@
     "train_batch_size": 32, 
     "checkpoint_frequency": 5000, 
     "training_iterations": 50000, 
-    "num_cpus": 2, 
+    "num_cpus": 12, 
     "num_gpus": 0, 
     "use_gpus_for_workers": false, 
     "use_gpu_for_driver": false, 
