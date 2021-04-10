@@ -168,6 +168,8 @@ class GeneralAgent(object):
                 E_joy = self.core_f(wellbeing_appraisal)*self.secondary_g(F)
             elif wellbeing_appraisal <0:
                 E_sad = -(self.core_f(-1*wellbeing_appraisal)*self.secondary_g(F))
+            # else: # semi-egoists
+            #     return F
         emotions = [E_joy>0, E_sad<0, E_anger<0, E_fearful<0]
         # print(emotions)
         assert sum(emotions) <2, "detected more than one emotions"
