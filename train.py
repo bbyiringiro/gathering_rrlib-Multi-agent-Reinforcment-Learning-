@@ -102,8 +102,8 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
         "env_config": {
             "num_agents": num_agents,
             "visual":args.visual,
-            "n_tag":10,#tune.grid_search([10]),#args.n_tag,
-            "n_apple":10,#tune.grid_search([1, 10, 50 , 100, 200]),#args.n_apple,
+            "n_tag":args.n_tag,
+            "n_apple":args.n_apple,
             "init":False,
             "imrl":{'use':False},
             "env_name":env_name,
@@ -111,7 +111,7 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
             "func_create":tune.function(env_creator),
         },
         "callbacks": MyCallbacks,
-        "num_gpus": args.num_gpus,
+        # "num_gpus": args.num_gpus,
         "multiagent": {
             "policies": policies,
             "policy_mapping_fn": tune.function(policy_mapping_fn)
@@ -137,26 +137,26 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
             # Config for the Exploration class' constructor:
             "initial_epsilon": 1.0,
             "final_epsilon": 0.1, #0.02
-            "epsilon_timesteps": int(1e6),  # Timesteps over which to anneal epsilon. # 500000
+            "epsilon_timesteps": int(2e6),  # Timesteps over which to anneal epsilon. # 500000
         },
-        "evaluation_interval":500,
-        "evaluation_num_episodes":50,
-        "evaluation_num_workers":1,
-        "evaluation_config": {
-            "explore": True,
-            "exploration_config": {
-            # The Exploration class to use.
-            "type": "EpsilonGreedy",
-            # Config for the Exploration class' constructor:
-            "initial_epsilon": 0.1,
-            "final_epsilon": 0.1, #0.02
-            "epsilon_timesteps": 1,  # Timesteps over which to anneal epsilon. # 500000
-            },
+        # "evaluation_interval":500,
+        # "evaluation_num_episodes":50,
+        # "evaluation_num_workers":1,
+        # "evaluation_config": {
+        #     "explore": True,
+        #     "exploration_config": {
+        #     # The Exploration class to use.
+        #     "type": "EpsilonGreedy",
+        #     # Config for the Exploration class' constructor:
+        #     "initial_epsilon": 0.1,
+        #     "final_epsilon": 0.1, #0.02
+        #     "epsilon_timesteps": 1,  # Timesteps over which to anneal epsilon. # 500000
+        #     },
 
-        },
+        # },
         "lr": 0.00025, #5e-4,
         # Adam epsilon hyper parameter
-        "adam_epsilon": tune.grid_search([1e-8, 0.001]),
+        "adam_epsilon": 1e-8,
 
 
 

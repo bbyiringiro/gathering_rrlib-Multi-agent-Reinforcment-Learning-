@@ -42,7 +42,7 @@ class GatherMultEnv(MultiAgentEnv):
             self.set_up(env_config)
 
         self.intrinsically_motivated = False
-        self.imrl_reward_alpha = 1
+        self.imrl_reward_alpha = 0
         
         #IMRL
         if env_config.get('imrl', -1) != -1:
@@ -159,7 +159,7 @@ class GatherMultEnv(MultiAgentEnv):
             else:
                 info[agent_id]['inR'] = 0
             rewards[agent_id] = self.imrl_reward_alpha * in_reward + ex_reward
-            print(rewards[agent_id], ex_reward, in_reward)
+            # print(rewards[agent_id], ex_reward, in_reward)
 
         if calculate_aggress:
             for agent_id, agent in self.agents.items():
