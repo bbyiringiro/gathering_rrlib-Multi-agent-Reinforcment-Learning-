@@ -107,7 +107,7 @@ class GeneralAgent(object):
         elif self.wellbeing_fx == 'aspiration':
             h = 1
             W = np.tanh(h*((self.smoothen_wellbeing/current_iter) - self.aspirational))
-            self.aspirational = (1-self.aspiration_beta)*self.aspirational + self.aspiration_beta*(self.smoothen_wellbeing/(current_iter+1))
+            self.aspirational = (1-self.aspiration_beta)*self.aspirational + self.aspiration_beta*(self.smoothen_wellbeing/(current_iter))
         # print(self.smoothen_wellbeing)
         # if W > 0:
         #     print(W)
@@ -115,7 +115,7 @@ class GeneralAgent(object):
         #     import time
         #     time.sleep(1)
         
-        # W = np.clip(W, -1, 1) # clip due to floating points error
+        W = np.clip(W, -1, 1) # clip due to floating points error
         return  W
                 
     def emotional_derivation(self, _reward, neighbors, current_iter):

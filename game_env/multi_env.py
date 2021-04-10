@@ -151,15 +151,15 @@ class GatherMultEnv(MultiAgentEnv):
                 in_reward, joy, sad, fear, anger = agent.update_internal(actions[agent_id],\
                 ex_reward,\
                 self.get_neigbors(agent_id, self.env.player_list[agent.player_idx].observable_view),\
-                self.iteration, calculate_aggress)
+                self.iteration+1, calculate_aggress)
                 # TASK separated the metrics collection for intrinsic vs extrinsic
                 
                 info[agent_id]['inR'] = in_reward
                 # print(in_reward)
             else:
                 info[agent_id]['inR'] = 0
-            rewards[agent_id] = self.imrl_reward_alpha * in_reward + (1-self.imrl_reward_alpha)*ex_reward
-            # print(rewards[agent_id], ex_reward, in_reward)
+            rewards[agent_id] = self.imrl_reward_alpha * in_reward + ex_reward
+            print(rewards[agent_id], ex_reward, in_reward)
 
         if calculate_aggress:
             for agent_id, agent in self.agents.items():

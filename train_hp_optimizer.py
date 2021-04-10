@@ -138,22 +138,7 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
             # Config for the Exploration class' constructor:
             "initial_epsilon": 1.0,
             "final_epsilon": 0.1, #0.02
-            "epsilon_timesteps": int(1e6),  # Timesteps over which to anneal epsilon. # 500000
-        },
-        "evaluation_interval":500,
-        "evaluation_num_episodes":10,
-        "evaluation_num_workers":1,
-        "evaluation_config": {
-            "explore": True,
-            "exploration_config": {
-            # The Exploration class to use.
-            "type": "EpsilonGreedy",
-            # Config for the Exploration class' constructor:
-            "initial_epsilon": 0.1,
-            "final_epsilon": 0.1, #0.02
-            "epsilon_timesteps": 1,  # Timesteps over which to anneal epsilon. # 500000
-            },
-
+            "epsilon_timesteps": int(2e6),  # Timesteps over which to anneal epsilon. # 500000
         },
         "lr": 0.00025, #5e-4,
         # Adam epsilon hyper parameter
@@ -194,7 +179,7 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
 
     config['env_config'].update({
         'imrl':{"use":True,
-                "imrl_reward_alpha":1,
+                "imrl_reward_alpha":tune.grid_search([1, 0.5,2,0.1]),
                 "full_obs":False,
                 "fairness_gamma":0.99,
                 "fairness_alpha": 1,
@@ -206,7 +191,7 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
                 "f_u": 1,
                 "g_v": 1,
                 "core":tune.grid_search(['fw', 'wf']),
-                "wellbeing_fx":tune.grid_search(['variance', 'aspiration'])
+                "wellbeing_fx":'variance'
         }
     })
 

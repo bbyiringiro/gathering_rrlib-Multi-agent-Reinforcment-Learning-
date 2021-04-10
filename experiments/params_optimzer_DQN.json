@@ -1,14 +1,14 @@
 {
-    "exp_name": "default_gathering", 
+    "exp_name": "combined_gathering", 
     "exp_index":0,
-    "env": "gathering_imrl", 
+    "env": "gathering", 
     "algorithm": "DQN", 
     "num_agents": 2, 
     "train_batch_size": 32, 
-    "checkpoint_frequency": 500, 
-    "training_iterations": 10000, 
-    "num_cpus": 4, 
-    "num_gpus": 4, 
+    "checkpoint_frequency": 5000, 
+    "training_iterations": 50000, 
+    "num_cpus": 2, 
+    "num_gpus": 0, 
     "use_gpus_for_workers": false, 
     "use_gpu_for_driver": false, 
     "num_workers_per_device": 2, 
@@ -31,7 +31,9 @@
         "aspirational": 0.5,
         "aspiration_beta": 0.01,
         "f_u": 1,
-        "g_v": 1
+        "g_v": 1,
+        "core":"wf",
+        "wellbeing_fx":"variance"
     },
     "visual":false
 }
