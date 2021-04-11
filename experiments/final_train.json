@@ -1,5 +1,5 @@
 {
-    "exp_name": "last_fw_varinance", 
+    "exp_name": "last_gathering_fw_varinance", 
     "exp_index":0,
     "env": "gathering", 
     "algorithm": "DQN", 
