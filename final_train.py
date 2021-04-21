@@ -152,14 +152,14 @@ def setup(env, hparams, algorithm, train_batch_size, num_cpus, num_gpus,
         # [[0, hparams['lr_init']],
         #     [20000000, hparams['lr_final']]],
         # "entropy_coeff": hparams['entropy_coeff'],
-        "num_envs_per_worker": 12,
+        "num_envs_per_worker": 8,
         "num_gpus": 1,
-       # "num_gpus_per_worker": 1,
-         "num_workers":1, # num_workers,
+        "num_gpus_per_worker": 0,
+        "num_workers":1, # num_workers,
         # "num_gpus": gpus_for_driver,  # The number of GPUs for the driver
-       # "num_cpus_for_driver": cpus_for_driver,
+        "num_cpus_for_driver": 1,#cpus_for_driver,
         # "num_gpus_per_worker": num_gpus_per_worker,   # Can be a fraction
-        # "num_cpus_per_worker": num_cpus_per_worker,   # Can be a fraction
+        "num_cpus_per_worker": 1,#num_cpus_per_worker,   # Can be a fraction
         # General
         # "learning_starts": 1000,
         # "train_batch_size": int(train_batch_size),

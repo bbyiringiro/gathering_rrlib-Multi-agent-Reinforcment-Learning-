@@ -126,8 +126,8 @@ class GeneralAgent(object):
         
         
 
-        # print("wellbeing: ",wellbeing_appraisal)
-        # print("fairness appraisal: ",fairness_appraisal)
+        print("wellbeing: ",wellbeing_appraisal)
+        print("fairness appraisal: ",fairness_appraisal)
         assert(abs(wellbeing_appraisal) <=1)
         assert(abs(fairness_appraisal) <=1)
 
